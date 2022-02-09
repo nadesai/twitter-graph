@@ -141,7 +141,7 @@ def fetch_friendships(apis, users, excluded, out, target,
     :param list friends_restricted_to: the set of potential friends to consider
     :param friendships_file: the friendships filename in the cache
     """
-    print(f"Reading from {out / target / friendships_file}...", end='\n', flush=True)
+    print(f"Reading from {out / target / friendships_file}...", end='', flush=True)
     friendships = get_or_set(out / target / friendships_file, {})
     print("done.")
     friends_restricted_to = friends_restricted_to if friends_restricted_to else users
@@ -179,7 +179,7 @@ def fetch_friendships(apis, users, excluded, out, target,
             common_friends = set(user_friends).intersection(users_ids)
             friendships[str(user["id"])] = list(common_friends)
             # Write to file
-            print(f"Writing to {out / target / friendships_file}...", end='\n', flush=True)
+            print(f"Writing to {out / target / friendships_file}...", end='', flush=True)
             get_or_set(out / target / friendships_file, friendships.copy(), force=True)
             print("done.")
     return friendships

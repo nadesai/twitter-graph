@@ -4,3 +4,4 @@ python-twitter>=3.5
 requests
 ipython
 networkx
+textblob

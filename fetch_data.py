@@ -149,32 +149,34 @@ def fetch_friendships(apis, users, excluded, out, target,
     excluded = [s.lower() for s in get_or_set(excluded, [])]
     api_idx = 0
     for i, user in enumerate(users):
-        if user["screen_name"].lower() in excluded:
-            continue
         if str(user["id"]) in friendships:
             print(f"[{len(friendships)}] @{user['screen_name']} found in cache.")
         else:
-            print(f"[{len(friendships)}] Fetching friends of @{user['screen_name']}")
-            user_friends = []
-            while not user_friends:
-                try:
-                    next_cursor = -1
-                    previous_cursor = 0
-                    while previous_cursor != next_cursor and next_cursor != 0:
-                        next_cursor, previous_cursor, new_user_friends,  = \
-                            apis[api_idx].GetFriendIDsPaged(user_id=user["id"], stringify_ids=True, cursor=next_cursor)
-                        user_friends = user_friends + new_user_friends
-                except twitter.error.TwitterError as e:
-                    if not isinstance(e.message, str) and e.message[0]["code"] == TWITTER_RATE_LIMIT_ERROR:
-                        if stop_on_rate_limit:
-                            print(f"You reached the rate limit. Stopping as required.")
-                            return friendships
-                        api_idx = (api_idx + 1) % len(apis)
-                        print(f"You reached the rate limit. Moving to next api: #{api_idx}")
-                        sleep(15)
-                    else:
-                        print("...but it failed. Error: {}".format(e))
-                        user_friends = [""]
+            if user["screen_name"].lower() not in excluded:
+                print(f"[{len(friendships)}] Fetching friends of @{user['screen_name']}")
+                user_friends = []
+                while not user_friends:
+                    try:
+                        next_cursor = -1
+                        previous_cursor = 0
+                        while previous_cursor != next_cursor and next_cursor != 0:
+                            next_cursor, previous_cursor, new_user_friends,  = \
+                                apis[api_idx].GetFriendIDsPaged(user_id=user["id"], stringify_ids=True, cursor=next_cursor)
+                            user_friends = user_friends + new_user_friends
+                    except twitter.error.TwitterError as e:
+                        if not isinstance(e.message, str) and e.message[0]["code"] == TWITTER_RATE_LIMIT_ERROR:
+                            if stop_on_rate_limit:
+                                print(f"You reached the rate limit. Stopping as required.")
+                                return friendships
+                            api_idx = (api_idx + 1) % len(apis)
+                            print(f"You reached the rate limit. Moving to next api: #{api_idx}")
+                            sleep(15)
+                        else:
+                            print("...but it failed. Error: {}".format(e))
+                            user_friends = [""]
+            else:
+                print(f"@{user['screen_name']} is excluded. Giving them an empty friends list.")
+                user_friends = []
 
             common_friends = set(user_friends).intersection(users_ids)
             friendships[str(user["id"])] = list(common_friends)
